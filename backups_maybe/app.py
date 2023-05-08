@@ -12,12 +12,12 @@ from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import Session
 from sqlalchemy import create_engine, func
 
-from flask import Flask, jsonify, abort
+from flask import Flask, jsonify
 
 #################################################
 # Database Setup
 #################################################
-engine = create_engine("sqlite:///Resources/hawaii.sqlite")
+engine = create_engine("sqlite:///hawaii.sqlite")
 
 # reflect an existing database into a new model
 Base = automap_base()
@@ -30,8 +30,7 @@ Measurements = Base.classes.measurement
 Stations = Base.classes.station
 
 # Create our session (link) from Python to the DB
-# Not sure if it s better pratice or not but, decided to open and close each  season for each app call
-# Used an examples from week 10's lessons as a basis for doing that
+
 
 
 #################################################
@@ -53,8 +52,7 @@ def welcome():
         f"/api/v1.0/stations<br/>"
         f"/api/v1.0/tobs<br/>"
         f'Enter a "(start date)" or a "(start date) / (end date)" for temps during those dates <br/>'
-        f'Format: YYYY-MM-DD<br/>'
-        f'/api/v1.0/&nbsp&nbsp&nbsp"(start date)/(end date)"'
+        f'/api/v1.0/   "(start date)/(end date)"'
     )
 @app.route("/api/v1.0/precipitation")
 def precip():
@@ -69,15 +67,12 @@ def precip():
 
     prcp_dict = {date: prcp for date, prcp in OneYearPrcp}
 
-    #the code below is pretty concise but I expanded it for the rest of the functions to make a little more sense
-    #if I try to come back to this code latter in the course for any reason 
     return jsonify(prcp_dict)
 
 @app.route("/api/v1.0/stations")
 def station():
     session = Session(bind=engine)
 
-    #Went with creating a list of dictionsars to sow not only the station name or id but also the lat/long and elveation
     wx_stations = session.query(Stations.station, Stations.name, Stations.latitude, Stations.longitude, Stations.elevation).all()
     all_stations = []
     for row in wx_stations:
@@ -89,6 +84,10 @@ def station():
         wx_stations_dict["Elevation"] = row.elevation
         all_stations.append(wx_stations_dict)
 
+    # wx_stations = session.query(Stations.station, Stations.name).all()
+    # wx_stations_dict = {}
+    # for row in wx_stations:
+    #     wx_stations_dict[row.station] = row.name
     session.close()
 
     json_wx_station = jsonify(all_stations)
@@ -129,8 +128,6 @@ def temps_station(start):
     json_station_list_temp = jsonify(station_dict_temp)
     return(json_station_list_temp)
 
-# I was going to try and figure out how to have a default argument for end but I got lost and it was not asked for in
-# assigment so I wrote a second app.route function instead    
 @app.route("/api/v1.0/<start>/<end>")
 def temps_station_enddate(start, end):
     session = Session(bind=engine)
@@ -141,17 +138,12 @@ def temps_station_enddate(start, end):
             filter(Measurements.date >= start).filter(Measurements.date <= end).all()
 
     session.close()
-    # If you want a list vs a dictionary
     # station_list_temp = [(*result,) for result in min_max_avg]
-
-    # Went with a dictionary
-    # Bing AI helped with the code espically the index calling with the [].
     station_dict_temp = {result[0]: {"name": result[1], "min_temp": result[2], "max_temp": result[3],\
                          "avg_temp": result[4]} for result in min_max_avg}
 
     json_station_list_temp = jsonify(station_dict_temp)
     return(json_station_list_temp)
 
-#not sure if this is required but I saw it in all the exmples and a debuger is nver a bad thing i think
 if __name__ == '__main__':
     app.run(debug=True)
