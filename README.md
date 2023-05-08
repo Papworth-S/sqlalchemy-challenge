@@ -1,5 +1,5 @@
 # sqlalchemy-challenge
-Complete the both the juypter notebook portion and the flask API app with help from Bing AI and AskBCS and where it was done should be in the comments throught the code.
+Complete the both the juypter notebook portion and the flask API app with help from Bing AI and AskBCS and where it was done should be in the comments throughout the code.
 
 
 Creating the API app the dynamic portion might not be what was asked for. <br>
